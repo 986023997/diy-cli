@@ -1,6 +1,7 @@
 package com.binturong.cli.core;
 
 import com.binturong.cli.core.exception.NotSupportCommandException;
+import com.binturong.cli.core.exception.ParseException;
 import com.binturong.cli.core.handler.CommandHandler;
 import com.binturong.cli.core.parse.Parse;
 
@@ -82,6 +83,8 @@ public class Cli {
         if (commandStr.isEmpty()) {
             throw new NotSupportCommandException("the command is empty!!");
         }
+
+        // todo 命令定义进行抽象，命令的解析器进行抽象
         CommandDefinition command = commands.get(commandStr);
         if (command == null) {
             throw new NotSupportCommandException(command);
@@ -94,7 +97,7 @@ public class Cli {
                 return handler.handle(commandLine);
             }
         }
-        return "";
+        return null;
     }
 
     private String helpDocument() {

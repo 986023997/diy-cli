@@ -16,4 +16,5 @@ public interface Command extends Cloneable {
     void addArgument(Argument argument);
     Option getOption(String option);
     Argument getArgument(String argument);
+    List<Option> getOptions();
 }

@@ -25,8 +25,10 @@ public class Argument {
      */
     protected String defaultValue;
 
+    /**
+     * The optional value of this argument.
+     */
     protected String value;
-
 
     private Class<?> type = String.class;
 

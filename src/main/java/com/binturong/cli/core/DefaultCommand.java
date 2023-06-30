@@ -37,11 +37,16 @@ public class DefaultCommand implements Command {
 
     @Override
     public Option getOption(String option) {
-        return null;
+        return options.get(option);
     }
 
     @Override
     public Argument getArgument(String argument) {
-        return null;
+        return arguments.get(argument);
+    }
+
+    @Override
+    public List<Option> getOptions() {
+        return new ArrayList<>(options.values());
     }
 }

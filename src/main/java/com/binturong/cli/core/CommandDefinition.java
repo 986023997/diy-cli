@@ -1,56 +1,23 @@
 package com.binturong.cli.core;
 
-import com.binturong.cli.core.exception.CliException;
-import com.sun.istack.internal.Nullable;
-
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author zhulin
- * @date 2023-06-27 11:23
+ * @date 2023-06-29 17:57
  */
-public class CommandDefinition{
+public interface CommandDefinition {
 
-    private String commandKey;
-    private Map<String, Option> fullOptionMap = new HashMap<>();
-    private Map<String, Option> shortOptionMap = new HashMap<>();
-    private Map<String, Argument> argumentMap = new HashMap<>();
+    String getKey();
 
-    public CommandDefinition(String commandKey) {
-        this.commandKey = commandKey;
-    }
+    void addOption(Option option);
 
-    public String getKey() {
-        return commandKey;
-    }
+    Option getOption(String token);
 
+    boolean isOption(String token);
 
-    public void addOption(@Nullable Option option) {
-        if (option == null) {
-            throw new CliException("option not be null");
-        }
-        String name = option.getName();
-        if (StringUtils.isNotEmpty(name)) {
-            fullOptionMap.put(name, option);
-        }
-        String shortName = option.getShortName();
-        if (StringUtils.isNotEmpty(shortName)) {
-            shortOptionMap.put(shortName, option);
-        }
-    }
+    List<Option> getRequireOptions();
 
+    boolean  allowedOverwrite();
 
-    public void addArgument(Argument argument) {
-        if (argument == null) {
-            throw new CliException("argument not be null");
-        }
-        argumentMap.put(argument.getArgName(), argument);
-    }
-
-    public Option getOption(String option) {
-        return fullOptionMap.containsKey(option) ? fullOptionMap.get(option) : shortOptionMap.get(option);
-    }
 }

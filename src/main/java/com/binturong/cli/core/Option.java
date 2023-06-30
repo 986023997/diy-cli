@@ -1,6 +1,7 @@
 package com.binturong.cli.core;
 
 import com.binturong.cli.core.exception.CliException;
+import com.binturong.cli.core.exception.MissingOptionException;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -14,74 +15,98 @@ import java.util.Map;
  */
 public class Option implements Cloneable, Serializable {
 
+
+
+
     private static final long serialVersionUID = 1L;
+
+    private static final int UNINITIALIZED = -1;
+    private static final int NOT_LIMITED = -2;
+
     /** Name of option */
     private String name;
     /** Name of option */
     private String shortName;
     /** description of option */
     private String description;
-    /** 是否必须 */
-    private boolean required = false;
 
     /**
-     * 参数
+     * whether or not the option is required. A mandatory not set throws a {@link MissingOptionException}.
      */
-    private Map<String,Argument> argumentMap = new HashMap<>();
-    private int argCount = 0;
+    private boolean required;
 
-    public Option(String name, String description) {
-        this.name = OptionValidator.validOption(name);
+    /** The type of this Option */
+    private Class<?> type = String.class;
+
+    private List<String> values = new ArrayList<>();
+
+    private int argCount = UNINITIALIZED;
+
+    public Option(String name, String shortName, String description, boolean required, boolean hasArg) {
+        this.name = name;
+        this.shortName = shortName;
         this.description = description;
-    }
-
-
-    public Option(String name, String shortName, String description) {
-        this.name = OptionValidator.validOption(name);
-        this.shortName = OptionValidator.validOption(shortName);
-        this.description = description;
+        this.required = required;
+        if (hasArg) {
+            argCount = 1;
+        }
     }
 
     public String getName() {
         return name;
     }
 
-    public Option setName(String name) {
+    public void setName(String name) {
         this.name = name;
-        return this;
     }
 
     public String getShortName() {
         return shortName;
     }
 
-    public Option setShortName(String shortName) {
+    public void setShortName(String shortName) {
         this.shortName = shortName;
-        return this;
     }
 
     public String getDescription() {
         return description;
     }
 
-    public Option setDescription(String description) {
+    public void setDescription(String description) {
         this.description = description;
-        return this;
     }
 
     public boolean isRequired() {
         return required;
     }
 
-    public Option setRequired(boolean required) {
+    public void setRequired(boolean required) {
         this.required = required;
-        return this;
+    }
+
+    public Class<?> getType() {
+        return type;
+    }
+
+    public void setType(Class<?> type) {
+        this.type = type;
+    }
+
+    public List<String> getValues() {
+        return values;
+    }
+
+    public void setValues(List<String> values) {
+        this.values = values;
     }
 
     public int getArgCount() {
         return argCount;
     }
 
+    public void setArgCount(int argCount) {
+        this.argCount = argCount;
+    }
 
     @Override
     public Option clone() throws CloneNotSupportedException {
@@ -93,35 +118,18 @@ public class Option implements Cloneable, Serializable {
         }
     }
 
-    public Map<String, Argument> getArgumentMap() {
-        return argumentMap;
-    }
-
-    public Option setArgumentMap(Map<String, Argument> argumentMap) {
-        this.argumentMap = argumentMap;
-        return this;
-    }
-
-
-    public Option addArgument(Argument argument) {
-       if (argument == null) {
-           throw new CliException("argument can ben null");
-       }
-        String argName = argument.getArgName();
-        if (StringUtils.isEmpty(argName)) {
-            argName = argCount++ + "";
-        }
-        argument.setArgName(argName);
-        argumentMap.put(argName,argument);
-        return this;
-    }
-
     public boolean acceptsArg() {
-        return argumentMap != null && argumentMap.size() > 0;
+        return hasArg() && values.size() < argCount;
     }
 
+    public boolean hasArg() {
+        return argCount != UNINITIALIZED && (argCount > 0 || argCount == NOT_LIMITED);
+    }
 
-    public void setArgCount(int argCount) {
-        this.argCount = argCount;
+    public void addValue(String value) {
+        if (!acceptsArg()) {
+            throw new RuntimeException("the argument value is limited");
+        }
+        this.getValues().add(value);
     }
 }
