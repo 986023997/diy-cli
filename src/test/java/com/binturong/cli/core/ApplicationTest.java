@@ -33,12 +33,15 @@ public class ApplicationTest {
             if (commandLine != null) {
                 Command command = commandLine.getCommand();
                 List<Option> options = command.getOptions();
-                StringBuilder res = new StringBuilder();
                 for (Option option : options) {
-                    res.append("option:" + option.getName() + " values:" + StringUtils.join(option.getValues(), ",") + "\n");
+                    log.info("option:" + option.getName() + " values:" + StringUtils.join(option.getValues(), ",") );
+                }
+                List<String> arguments = commandLine.allArguments();
+                for (int i = 0; i < arguments.size(); i++) {
+                    log.info("argument index-" + i + ",value: " + arguments.get(i));
                 }
                 log.info("command exec done");
-                return res.toString();
+                return "";
             }
             return null;
         }
@@ -56,7 +59,7 @@ public class ApplicationTest {
         TestCommandDefinition.addOption(classOption);
         TestCommandDefinition.addOption(methodOption);
         commandHashMap.put("test", TestCommandDefinition);
-        String[] args = {"Test","--class", "com.binturong.cli.core.OptionTest", "--m=testBuilderInsufficientParams1"};
+        String[] args = {"Test","--class", "com.binturong.cli.core.OptionTest", "-m","testBuilderInsufficientParams1", "arg1","arg2"};
         Cli cli = new Cli("test");
         cli.setCommands(commandHashMap);
         cli.setParse(defaultParse);

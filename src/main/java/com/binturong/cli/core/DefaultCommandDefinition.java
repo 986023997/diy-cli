@@ -60,8 +60,8 @@ public class DefaultCommandDefinition implements CommandDefinition {
     }
 
     @Override
-    public Option getOption(String option) {
-        return fullOptionMap.containsKey(option) ? fullOptionMap.get(option) : shortOptionMap.get(option);
+    public Option getLongOption(String option) {
+        return fullOptionMap.get(option);
     }
 
     @Override
@@ -77,5 +77,10 @@ public class DefaultCommandDefinition implements CommandDefinition {
     @Override
     public boolean allowedOverwrite() {
         return false;
+    }
+
+    @Override
+    public Option getShortOption(String token) {
+        return shortOptionMap.get(token);
     }
 }

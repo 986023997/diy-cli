@@ -12,7 +12,7 @@ public interface CommandDefinition {
 
     void addOption(Option option);
 
-    Option getOption(String token);
+    Option getLongOption(String token);
 
     boolean isOption(String token);
 
@@ -20,4 +20,5 @@ public interface CommandDefinition {
 
     boolean  allowedOverwrite();
 
+    Option getShortOption(String token);
 }

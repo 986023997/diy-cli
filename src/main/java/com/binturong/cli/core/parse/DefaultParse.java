@@ -4,10 +4,7 @@ import com.binturong.cli.core.*;
 import com.binturong.cli.core.exception.MissingOptionException;
 import com.binturong.cli.core.exception.NotSupportOptionException;
 import com.binturong.cli.core.exception.ParseException;
-
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 
 /**
@@ -51,21 +48,11 @@ public class DefaultParse implements Parse {
         }
 
 
-        public static void proceeOptionArgument() {
-
-        }
-
-
         public static void startOption(Option option) {
             if (currentOption.get() != null) {
                 throw new ParseException("cannot start one option before the resolution of another is complete");
             }
             currentOption.set(option);
-        }
-
-
-        public static Option getCurrentOption() {
-            return currentOption.get();
         }
 
 
@@ -105,7 +92,7 @@ public class DefaultParse implements Parse {
                } else if (token.startsWith("--")) {
                    handleLongOption(token);
                } else if (token.startsWith("-") && !"-".equals(token)) {
-                   handleShortAndLongOption(token);
+                   handleShortOption(token);
                } else {
                    handleArgument(token);
                }
@@ -118,26 +105,84 @@ public class DefaultParse implements Parse {
     }
 
     private void handleOptionArgument(String token) {
-        int pos = token.indexOf("=");
-        if (pos == -1) {
-            Option option = Lexer.currentOption.get();
-            option.addValue(ParseUtil.stripLeadingAndTrailingQuotes(token));
-        } else {
-        }
+        Option option = Lexer.currentOption.get();
+        option.addValue(ParseUtil.stripLeadingAndTrailingQuotes(token));
     }
 
     private void handleArgument(String token) {
-
-    }
-
-    private void handleShortAndLongOption(String token) {
-
+        CommandLine commandLine = Lexer.currentCommandLine.get();
+        commandLine.addArgument(token);
     }
 
     /**
      * Handles the following tokens:
+     * <p/>
+     * -S
+     * -S V
+     * -S=V
+     * <p/>
      *
-     * --L --L=V --L V --l
+     * @param token the command line token to handle
+     */
+    private void handleShortOption(String token) {
+        if (token.indexOf('=') == -1) {
+            handleShortOptionWithoutEqual(token);
+        } else {
+            handleShortOptionWithEqual(token);
+        }
+    }
+
+    private void handleShortOptionWithEqual(String token) {
+        final int pos = token.indexOf('=');
+        final String value = token.substring(pos + 1);
+        String opt = token.substring(0, pos);
+        CommandDefinition commandDefinition = Lexer.currentCommandDefinition.get();
+        Option option = commandDefinition.getShortOption(ParseUtil.stripLeadingHyphens(opt));
+        if (option != null) {
+            Option optionClone = null;
+            try {
+                optionClone = option.clone();
+            } catch (CloneNotSupportedException e) {
+                e.printStackTrace();
+                throw new ParseException(e.getMessage());
+            }
+            Lexer.startOption(optionClone);
+            CommandLine commandLine = Lexer.currentCommandLine.get();
+            Command command = commandLine.getCommand();
+            optionClone.addValue(value);
+            command.addOption(optionClone);
+        } else {
+            handleUnknownToken(Lexer.currentToken.get());
+        }
+    }
+
+    private void handleShortOptionWithoutEqual(String token) {
+        CommandDefinition commandDefinition = Lexer.currentCommandDefinition.get();
+        token = ParseUtil.stripLeadingHyphens(token);
+        Option option = commandDefinition.getShortOption(token);
+        if (option != null) {
+            Option optionClone = null;
+            try {
+                optionClone = option.clone();
+            } catch (CloneNotSupportedException e) {
+                e.printStackTrace();
+            }
+            Lexer.startOption(optionClone);
+            CommandLine commandLine = Lexer.currentCommandLine.get();
+            Command command = commandLine.getCommand();
+            command.addOption(optionClone);
+        } else {
+            handleUnknownToken(Lexer.currentToken.get());
+        }
+    }
+
+
+
+
+    /**
+     * Handles the following tokens:
+     *
+     * --L --L=V --L V
      *
      * @param token the command line token to handle
      */
@@ -147,8 +192,6 @@ public class DefaultParse implements Parse {
         } else {
             handleLongOptionWithEqual(token);
         }
-
-
     }
 
     /**
@@ -163,7 +206,7 @@ public class DefaultParse implements Parse {
         final String value = token.substring(pos + 1);
         String opt = token.substring(0, pos);
         CommandDefinition commandDefinition = Lexer.currentCommandDefinition.get();
-        Option option = commandDefinition.getOption(ParseUtil.stripLeadingHyphens(opt));
+        Option option = commandDefinition.getLongOption(ParseUtil.stripLeadingHyphens(opt));
         if (option != null) {
             Option optionClone = null;
             try {
@@ -193,7 +236,7 @@ public class DefaultParse implements Parse {
     private void handleLongOptionWithoutEqual(String token) {
         CommandDefinition commandDefinition = Lexer.currentCommandDefinition.get();
         token = ParseUtil.stripLeadingHyphens(token);
-        Option option = commandDefinition.getOption(token);
+        Option option = commandDefinition.getLongOption(token);
         if (option != null) {
             Option optionClone = null;
             try {
